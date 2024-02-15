@@ -178,5 +178,55 @@ If they fail to produce a valid token, an INVALID token is returned. EOI mean En
         } while (true);
     }
 ```
-
 Or something like that. (Oh, look, an infinite loop!)
+
+You will want to write a bit of test harness for this method (and the help methods you need to write).
+The test harness should isolate the `getNextToken()` method and just have it operate on a single string.
+The test harness might look like:
+
+```java
+class Lexer {
+    
+    class TestNextToken {
+        char[] buffer = [];
+        int idx = -1;
+        int maxlen = 0;
+        char ch;
+        private char nextChar() {
+            idx++;
+            if (idx >= maxlen) return '\0';
+            return buffer[idx];
+        }
+        public boolean testGetNextToken(Lexer lexer, String teststring, TokenType target) {
+            Boolean isValid = false;
+            buffer = teststring.toCharArray();
+            maxlen = teststring.length();
+            
+            Token actual = lexer.getNextToken();
+            
+            if (actual.getTokenType() == target) return true;
+            return false;
+        }
+    }
+}
+```
+
+This way, you can carve out a small amount of code to test, without having to run the whole thing.
+You can probably figure out a way to do this with UNIT TESTs, but I leave that for you.
+
+You would use the above class something like:
+
+```java
+// inside of a test method,
+    TestNextToken testharness = new TestNextToken();
+
+//...
+        testResult = testharness.testGetNextToken(lexer, "<html>", TokenType.KEYWORD);
+        testResult = testharness.testGetNextToken(lexer, "<li>", TokenType.KEYWORD);
+        testResult = testharness.testGetNextToken(lexer, "</ul>", TokenType.KEYWORD);
+        testResult = testharness.testGetNextToken(lexer, "hello", TokenType.STRING);
+        testResult = testharness.testGetNextToken(lexer, "hello12", TokenType.STRING);
+        testResult = testharness.testGetNextToken(lexer, "12345", TokenType.DIGIT);
+// ad infinitum...
+```
+
